@@ -1,22 +1,16 @@
+
 using Microsoft.AspNetCore.SignalR;
 
 namespace SignalRServer.Hubs;
 
-public class SIoTHub : Hub
+public class SIoTHub : Hub<IDeviceHub>
 {
-    // Diese Methode wird VON DER MIDDLEWARE aufgerufen, um Daten AN ALLE WEB-CLIENTS zu senden.
-    public async Task ReceiveDeviceData(string topic, string payload)
-    {
-        // "UpdateData" ist der Name des Events, auf das die Web-Clients (z.B. JavaScript) lauschen.
-        await Clients.All.SendAsync("UpdateData", topic, payload);
-    }
+    public async Task SendMessage(string user, string message)
+        => await Clients.All.ReceiveMessage(user, message);
 
-    // Diese Methode wird VOM WEB-CLIENT (z.B. JavaScript) aufgerufen, um einen Befehl AN DIE MIDDLEWARE zu senden.
-    public async Task SendCommandToDevice(string deviceId, string command)
-    {
-        // Ruft die Methode "SendCommandToDevice" auf dem verbundenen Client (unserer Middleware) auf.
-        // Wir gehen davon aus, dass nur ein Client (die Middleware) auf dieses Ereignis lauscht.
-        // Für komplexere Szenarien könnte man die Verbindungs-ID der Middleware speichern.
-        await Clients.All.SendAsync("SendCommandToDevice", deviceId, command);
-    }
+    public async Task SendMessageToCaller(string user, string message)
+        => await Clients.Caller.ReceiveMessage(user, message);
+
+    public async Task SendMessageToGroup(string user, string message)
+        => await Clients.Group("SIoTUsers").ReceiveMessage(user, message);
 }
